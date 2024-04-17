@@ -67,7 +67,8 @@ class EventController extends Controller
     public function isParticipant(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'event_id' => 'required|integer'
+            'event_id' => 'required|integer',
+            'user_id' => 'required|integer',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -82,7 +83,7 @@ class EventController extends Controller
                 'result' => null
             ]);
         }
-        if ($event->participants()->byUserId(Auth::id())) {
+        if ($event->participants()->byUserId($request->user_id)) {
             return response()->json([
                 'error' => null,
                 'result' => true
@@ -104,6 +105,7 @@ class EventController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'event_id' => 'required|integer',
+            'user_id' => 'required|integer',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -118,14 +120,14 @@ class EventController extends Controller
                 'result' => null
             ]);
         }
-        if ($event->participants()->byUserId(Auth::id())) {
+        if ($event->participants()->byUserId($request->user_id)) {
             return response()->json([
                 'error' => 'You are already a participant of this event',
                 'result' => null
             ]);
         }
         $event->participants()->create([
-            'user_id' => Auth::id()
+            'user_id' => $request->user_id
         ]);
         return response()->json([
             'error' => null,
@@ -143,6 +145,7 @@ class EventController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'event_id' => 'required|integer',
+            'user_id' => 'required|integer',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -157,13 +160,13 @@ class EventController extends Controller
                 'result' => null
             ]);
         }
-        if (! $event->participants()->byUserId(Auth::id())) {
+        if (! $event->participants()->byUserId($request->user_id)) {
             return response()->json([
                 'error' => 'You are not a participant of this event',
                 'result' => null
             ]);
         }
-        $event->participants()->where('user_id', Auth::id())->delete();
+        $event->participants()->where('user_id', $request->user_id)->delete();
         return response()->json([
             'error' => null,
             'event' => 'Un-participated to the event',
